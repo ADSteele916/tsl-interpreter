@@ -1,7 +1,7 @@
-from typing import Callable
+from typing import Union
 
 from environment import Environment
-from expressions import Atom, PyFunction, empty, false, true
+from expressions import Atom, Cons, Expression, PyFunction, empty, false, true
 
 
 def add(*args: Atom) -> Atom:
@@ -40,7 +40,7 @@ def equals(*args: Atom) -> Atom:
     return true
 
 
-def zero(atom: Atom) -> Atom:
+def zero_check(atom: Atom) -> Atom:
     if atom.val == 0:
         return true
     else:
@@ -49,6 +49,21 @@ def zero(atom: Atom) -> Atom:
 
 def lnot(atom: Atom) -> Atom:
     if atom.val is false:
+        return true
+    else:
+        return false
+
+
+def car(cons: Cons) -> Expression:
+    return cons.car
+
+
+def cdr(cons: Cons) -> Union[Cons, Atom]:
+    return cons.cdr
+
+
+def empty_check(exp: Expression) -> Atom:
+    if exp is empty:
         return true
     else:
         return false
@@ -64,7 +79,12 @@ default_env = Environment(
         "*": PyFunction(multiply),
         "/": PyFunction(divide),
         "=": PyFunction(equals),
-        "zero?": PyFunction(zero),
+        "zero?": PyFunction(zero_check),
         "not": PyFunction(lnot),
+        "car": PyFunction(car),
+        "cdr": PyFunction(cdr),
+        "first": PyFunction(car),
+        "rest": PyFunction(cdr),
+        "empty?": PyFunction(empty_check),
     }
 )

@@ -1,13 +1,13 @@
-from builtin_env import default_env
+import pytest
+
+from builtin_env import Environment, default_env
 from expressions import Atom, false, true
 from main import parse_expression
-
-import pytest
 
 
 @pytest.fixture
 def setup_env():
-    return default_env
+    return Environment(outer=default_env)
 
 
 def test_constant_eval(setup_env):
@@ -54,3 +54,14 @@ def test_recursion(setup_env):
     ).eval(setup_env)
 
     assert parse_expression("(fact 5)", setup_env).eval(setup_env) == Atom(120)
+
+
+def test_list_recursion(setup_env):
+    parse_expression(
+        "(define (sum lon) (if (empty? lon) 0 (+ (car lon) (sum (cdr lon)))))",
+        setup_env,
+    ).eval(setup_env)
+
+    lon = "(cons 5 (cons 4 (cons 3 (cons 2 (cons 1 empty)))))"
+
+    assert parse_expression(f"(sum {lon})", setup_env).eval(setup_env) == Atom(15)

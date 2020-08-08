@@ -3,15 +3,17 @@ from typing import List, Union
 
 from builtin_env import default_env
 from environment import Environment
-from expressions import (And, Atom, Definition, Expression, Function,
-                         FunctionCall, If, Or)
-
-sample_1 = "true"
-sample_2 = "(if (and true true false) false (or false true))"
-sample_3 = "(define TEST true)"
-sample_4 = "(lambda (x) (* x x))"
-sample_5 = "(define sqr (lambda (x) (* x x)))"
-sample_6 = "(define (test a) (or true a))"
+from expressions import (
+    And,
+    Atom,
+    Cons,
+    Definition,
+    Expression,
+    Function,
+    FunctionCall,
+    If,
+    Or,
+)
 
 
 def parse_expression(line: str, env: Environment) -> Expression:
@@ -28,9 +30,9 @@ def parse_expression(line: str, env: Environment) -> Expression:
 
     def parse(exp_list: Union[str, List]) -> Expression:
         def atomize(param) -> Atom:
-            if re.search(r"\d+\.\d+", param):
+            if re.search(r"^\d+\.\d+$", param):
                 return Atom(float(param))
-            elif re.search(r"\d+", param):
+            elif re.search(r"^\d+$", param):
                 return Atom(int(param))
             else:
                 return Atom(param)
@@ -51,7 +53,7 @@ def parse_expression(line: str, env: Environment) -> Expression:
                         func_name, Function(parse(exp_list[1]), env, *exp_list[0])
                     )
 
-            args = map(parse, exp_list)
+            args = list(map(parse, exp_list))
 
             if exp == "if":
                 return If(*args)
@@ -59,6 +61,8 @@ def parse_expression(line: str, env: Environment) -> Expression:
                 return And(*args)
             elif exp == "or":
                 return Or(*args)
+            elif exp == "cons":
+                return Cons(*args)
             else:
                 return FunctionCall(Atom(exp), *args)
 

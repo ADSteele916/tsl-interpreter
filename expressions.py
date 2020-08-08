@@ -39,7 +39,7 @@ class Or(Expression):
 
     def eval(self, env: Environment):
         for arg in self.args:
-            if arg.eval(env) is true:
+            if arg.eval(env) is not false:
                 return true
         return false
 
@@ -56,10 +56,22 @@ class If(Expression):
         return f"(if {self.question} {self.true_answer} {self.false_answer})"
 
     def eval(self, env: Environment):
-        if self.question.eval(env) is true:
+        if self.question.eval(env) is not false:
             return self.true_answer.eval(env)
-        elif self.question.eval(env) is false:
+        else:
             return self.false_answer.eval(env)
+
+
+class Cons(Expression):
+    def __init__(self, car: Expression, cdr):
+        self.car = car
+        self.cdr = cdr
+
+    def __str__(self):
+        return f"(cons {self.car} {self.cdr})"
+
+    def eval(self, env: Environment):
+        return self
 
 
 class Atom(Expression):
@@ -114,9 +126,9 @@ class Function(Expression):
 
     def __str__(self):
         rsf = "(lambda ("
-        for param in self.params:
-            rsf += f" {param}"
-        rsf += f") {self.body})"
+        for param in self.params[:-2]:
+            rsf += f"{param} "
+        rsf += f"{self.params[-1]}) {self.body})"
         return rsf
 
     def eval(self, env: Environment):
@@ -130,11 +142,8 @@ class PyFunction(Expression):
     def eval(self, env: Environment):
         return self
 
-    def call(self, env: Environment, *args: Expression):
-        evaled_args = []
-        for arg in args:
-            evaled_args.append(arg.eval(env))
-        return self.func(*evaled_args)
+    def call(self, *args: Expression):
+        return self.func(*args)
 
 
 class FunctionCall(Expression):
@@ -152,7 +161,7 @@ class FunctionCall(Expression):
     def eval(self, env: Environment):
         function_object: Union[Function, PyFunction] = self.func.eval(env)
         if isinstance(function_object, PyFunction):
-            return function_object.call(env, *self.args)
+            return function_object.call(*map(lambda arg: arg.eval(env), self.args))
         else:
             new_keys = dict(
                 zip(function_object.params, map(lambda arg: arg.eval(env), self.args))
