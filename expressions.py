@@ -4,7 +4,7 @@ from environment import Environment
 
 
 class Expression:
-    def eval(self, env: Environment):
+    def eval(self, env: Environment) -> "Expression":
         pass
 
 
@@ -64,14 +64,14 @@ class If(Expression):
 
 class Cons(Expression):
     def __init__(self, car: Expression, cdr):
-        self.car = car
+        self.car: Expression = car
         self.cdr = cdr
 
     def __str__(self):
         return f"(cons {self.car} {self.cdr})"
 
     def eval(self, env: Environment):
-        return self
+        return Cons(self.car.eval(env), self.cdr.eval(env))
 
 
 class Atom(Expression):
@@ -159,7 +159,7 @@ class FunctionCall(Expression):
         return rsf
 
     def eval(self, env: Environment):
-        function_object: Union[Function, PyFunction] = self.func.eval(env)
+        function_object: Union[Expression, Function, PyFunction] = self.func.eval(env)
         if isinstance(function_object, PyFunction):
             return function_object.call(*map(lambda arg: arg.eval(env), self.args))
         else:
